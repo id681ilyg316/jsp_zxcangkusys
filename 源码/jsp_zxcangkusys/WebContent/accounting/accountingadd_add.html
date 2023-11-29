@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>账务信息添加</title>
+<script src="../Scripts/boot.js" type="text/javascript"></script>
+<style type="text/css">
+td {
+	width: 100px;
+	height: 50px;
+}
+</style>
+</head>
+<body>
+	<form id="form1">
+		<input id="accounting_guid" name="accounting_guid" class="mini-hidden" />
+		<fieldset style="border: solid 0px #aaa; padding: 3px;">
+			<div style="padding: 5px;">
+				<table style="left: 150px">
+					<tr>
+						<td style="width: 50px;">账务名称：</td>
+						<td style="width: 100px;"><input id="accounting_name"
+							readonly="true" name="accounting_name" class="mini-textbox"
+							required="true" /></td>
+					</tr>
+					<tr>
+						<td>增加金额：</td>
+						<td><input id="accounting_add_money"
+							name="accounting_add_money" class="mini-textbox" required="true" /></td>
+					</tr>
+					<tr style="text-align: center; padding: 10px;">
+						<td style="margin: 100px;"><a class="mini-button"
+							onclick="onAdd()" style="width: 60px; margin-right: 20px;">添加</a>
+						</td>
+						<td><a class="mini-button" onclick="onReset()"
+							style="width: 60px;">重置</a></td>
+					</tr>
+				</table>
+			</div>
+		</fieldset>
+	</form>
+	<script type="text/javascript">
+		mini.parse();
+		var form = new mini.Form("#form1");
+
+		/*表单重置*/
+		function onReset() {
+			var form = new mini.Form("#form1");
+			form.reset();
+		}
+
+		/*标准方法接口定义*/
+		function SetData(data) {
+			data = mini.clone(data);
+			$
+					.ajax({
+						url : "../accountingaddAdd?flag=queryByAccountingguid&accounting_guid="
+								+ data.accounting_guid,
+						cache : false,
+						success : function(text) {
+							var o = mini.decode(text);
+							form.setData(o);
+							form.setChanged(false);
+
+						}
+					});
+		}
+
+		/*添加事件响应*/
+		function onAdd() {
+			var form = new mini.Form("#form1");
+			var data = form.getData();
+			var json = mini.encode(data);
+			if (!form.validate) {
+				return;
+			}
+			var accounting_add_money = mini.get("accounting_add_money")
+					.getValue();
+			if (accounting_add_money.trim().length == 0) {
+				mini.alert("增加金额不能为空！");
+				return false;
+			}
+			$.ajax({
+				url : "../accountingaddAdd?flag=add",
+				type : "post",
+				data : {
+					submitData : json
+				},
+				success : function(text) {
+					mini.alert(text, "提示信息", function() {
+						CloseWindow("save");
+					});
+				}
+			});
+			onReset();
+		}
+		/*关闭窗口*/
+		function CloseWindow(action) {
+			if (action == "close" && form.isChanged()) {
+				return false;
+			}
+			if (window.CloseOwnerWindow)
+				return window.CloseOwnerWindow(action);
+			else
+				window.close();
+		}
+	</script>
+</body>
+</html>

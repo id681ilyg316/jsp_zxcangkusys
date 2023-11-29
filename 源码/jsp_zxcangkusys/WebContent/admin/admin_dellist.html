@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="../Scripts/boot.js" type="text/javascript"></script>
+</head>
+<body>
+	<div class="mini-toolbar" style="border-bottom: 0; padding: 0px;">
+		<table style="width: 100%;">
+			<tr>
+				<td style="white-space: nowrap;">管理员登录名：<input
+					id="adminUsername" class="mini-textbox" emptyText="请输入管理员登录名"
+					style="width: 150px;" onenter="onKeyEnter" /> 管理员姓名：<input
+					id="adminName" class="mini-textbox" emptyText="请输入员工姓名"
+					style="width: 150px;" onenter="onKeyEnter" /> <a
+					class="mini-button" onclick="search()">查询</a>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="datagrid" class="mini-datagrid" allowResize="false"
+		url="../admindelList" idField="admin_guid" multiSelect="true"
+		pageSize="20">
+		<div property="columns">
+			<div id="admin_id" name="admin_id" field="admin_id" width="40"
+				headerAlign="center" allowSort="true" align="center">管理员编号</div>
+			<div field="admin_name" width="50" headerAlign="center"
+				allowSort="true" align="center">姓名</div>
+			<div field="admin_username" width="40" headerAlign="center"
+				allowSort="true" align="center">登录名</div>
+			<div field="admin_sex" width="20" headerAlign="center"
+				renderer="onRenderer" align="center">性别</div>
+			<div field="admin_date" width="80" headerAlign="center"
+				allowSort="true" renderer="onAdddateRenderer" align="center">添加日期</div>
+			<div field="admin_cardid" width="80" headerAlign="center"
+				align="center">身份证号码</div>
+			<div field="admin_phone" width="60" headerAlign="center"
+				align="center">电话</div>
+			<div field="admin_authority" width="60" headerAlign="center"
+				align="center" renderer="onGenderRenderer">管理员权限</div>
+			<div name="action" width="60" headerAlign="center" align="center"
+				renderer="onActionRenderer">操作</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		mini.parse();
+		var grid = mini.get("datagrid");
+		grid.load();
+
+		var Gender = [ {
+			id : 1,
+			text : '男'
+		}, {
+			id : 2,
+			text : '女'
+		} ];
+		function onRenderer(e) {
+			for (var i = 0, l = Gender.length; i < l; i++) {
+				var g = Gender[i];
+				if (g.id == e.value)
+					return g.text;
+			}
+			return "";
+		}
+
+		var Genders = [ {
+			id : 1,
+			text : '普通管理员'
+		}, {
+			id : 2,
+			text : '高级管理员'
+		}, {
+			id : 3,
+			text : '超级管理员'
+		} ];
+		function onGenderRenderer(e) {
+			for (var i = 0, l = Genders.length; i < l; i++) {
+				var g = Genders[i];
+				if (g.id == e.value)
+					return g.text;
+			}
+			return "";
+		}
+
+		/*格式化日期格式*/
+		function onAdddateRenderer(e) {
+			var value = e.value;
+			if (value)
+				return mini.formatDate(value, 'yyyy-MM-dd HH:mm:ss');
+			return "";
+		}
+
+		/*查询事件*/
+		function search() {
+			var adminUsername = mini.get("adminUsername").getValue();
+			var adminName = mini.get("adminName").getValue();
+			grid.load({
+				adminUsername : adminUsername,
+				adminName : adminName
+			});
+		}
+		function onKeyEnter(e) {
+			search();
+		}
+
+		/*初始化操作栏*/
+		function onActionRenderer(e) {
+			var grid = e.sender;
+			var record = e.record;
+			var uid = record._uid;
+			var rowIndex = e.rowIndex;
+			var s = '<a href="javascript:rollbackRow(\'' + uid + '\')">还原</a>  ';
+			return s;
+		}
+
+		/*单条记录删除*/
+		function rollbackRow(row_uid) {
+			var row = grid.getRowByUID(row_uid);
+			if (row) {
+				mini.confirm("确定要还原此记录吗？", "确定？", function(action) {
+					if (action == "ok") {
+						$.ajax({
+							url : "../adminRollback?admin_guid=" + row.admin_guid,
+							method : "post",
+							success : function(text) {
+								mini.alert(text, "提示信息", function() {
+									grid.reload();
+								});
+							}
+						});
+					} else {
+						return;
+					}
+				});
+			}
+		}
+	</script>
+</body>
+</html>

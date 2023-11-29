@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>账务信息添加</title>
+<script src="../Scripts/boot.js" type="text/javascript"></script>
+<style type="text/css">
+td {
+	width: 100px;
+	height: 50px;
+}
+.mini-list-inner {
+     width: 500px; 
+}
+</style>
+</head>
+<body>
+	<form id="form1">
+		<fieldset style="border: solid 0px #aaa; padding: 3px;">
+			<div style="padding: 5px;">
+				<table style="left: 400px">
+					<tr>
+						<td style="width: 100px;">账务名称：</td>
+						<td style="width: 400px;"><input id="accounting_name"
+							name="accounting_name" class="mini-textbox" required="true" /></td>
+					</tr>
+					<tr>
+						<td>账务金额：</td>
+						<td><input id="accounting_money" name="accounting_money"
+							class="mini-textbox" required="true" onvaluechanged="changelevel" /></td>
+					</tr>
+					<tr>
+						<td>账务等级：</td>
+						<td><input name="accounting_level" id="accounting_level"
+							readonly="true" class="mini-radiobuttonlist" textField="text"
+							valueField="id"
+							data="[{ id: 1, text: 'T' }, { id: 2, text: 'A'}, { id: 3, text: 'B'}, { id: 4, text: 'C'}, { id: 5, text: 'D'}]" /></td>
+					</tr>
+					<tr>
+						<td>财务描述：</td>
+						<td colspan="5"><input name="accounting_desc"
+							class="mini-textarea" style="width: 360px;" /></td>
+					</tr>
+					<tr style="text-align: center; padding: 10px;">
+						<td style="margin: 100px;"><a class="mini-button"
+							onclick="onAdd()" style="width: 60px; margin-right: 20px;">添加</a>
+						</td>
+						<td><a class="mini-button" onclick="onReset()"
+							style="width: 60px;">重置</a></td>
+					</tr>
+				</table>
+			</div>
+		</fieldset>
+	</form>
+	<script type="text/javascript">
+		mini.parse();
+
+		/*表单重置*/
+		function onReset() {
+			var form = new mini.Form("#form1");
+			form.reset();
+		}
+
+		/*添加事件响应*/
+		function onAdd() {
+			var form = new mini.Form("#form1");
+			var data = form.getData();
+			var json = mini.encode(data);
+			if (!form.validate) {
+				return;
+			}
+			var accounting_name = mini.get("accounting_name").getValue();
+			if(accounting_name.trim().length==0){
+				mini.alert("账务名称不能为空！");
+				return false;
+			}
+			
+			var accounting_money = mini.get("accounting_money").getValue();
+			if(accounting_money.trim().length==0){
+				mini.alert("账务金额不能为空！");
+				return false;
+			}
+			
+			$.ajax({
+				url : "../accountingAdd",
+				type : "post",
+				data : {
+					submitData : json
+				},
+				success : function(text) {
+					mini.alert(text, "提示信息", function() {
+						CloseWindow("save");
+					});
+				}
+			});
+			onReset();
+		}
+		/*关闭窗口*/
+		function CloseWindow(action) {
+			if (action == "close" && form.isChanged()) {
+				return false;
+			}
+			if (window.CloseOwnerWindow)
+				return window.CloseOwnerWindow(action);
+			else
+				window.close();
+		}
+
+		/*根据财务金额判定财务等级*/
+		function changelevel() {
+			var money = mini.get("accounting_money").getValue();
+			if (money <= 100000) {
+				mini.get("accounting_level").setValue("5");
+			} else if (money > 100000 && money <= 500000) {
+				mini.get("accounting_level").setValue("4");
+			} else if (money > 500000 && money <= 1000000) {
+				mini.get("accounting_level").setValue("3");
+			} else if (money > 1000000 && money <= 5000000) {
+				mini.get("accounting_level").setValue("2");
+			} else if (money > 5000000) {
+				mini.get("accounting_level").setValue("1");
+			}
+		}
+	</script>
+</body>
+</html>
